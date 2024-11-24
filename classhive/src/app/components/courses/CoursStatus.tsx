@@ -1,69 +1,51 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { IconFilt } from "../../icone/icone";
 import CoursDetail from "./CoursDetails";
 
 interface Course {
   id: number;
-  name: string;
+  title: string;
   description: string;
   status: string;
   date: string;
 }
 
-interface CoursesListProps {
-  courses: Course[];
-}
-
-export default function CoursesStatus({ courses }: CoursesListProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+export default function CoursesStatus() {
+  const [courses, setCourses] = useState<Course[]>([]);
 
   useEffect(() => {
-    const filterCourses = () => {
-      const trimmedSearchTerm = searchTerm.trim().toLowerCase();
-
-      if (trimmedSearchTerm === "") {
-        setFilteredCourses(courses);
-      } else {
-        const filtered = courses.filter((course) =>
-          course.name.toLowerCase().includes(trimmedSearchTerm)
-        );
-        setFilteredCourses(filtered);
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch("/api/allcourses");
+        if (response.ok) {
+          const data = await response.json();
+          setCourses(data.courses || []);
+        } else {
+          console.error("Failed to fetch courses");
+        }
+      } catch (error) {
+        console.error("Error fetching courses:", error);
       }
     };
 
-    filterCourses();
-  }, [searchTerm, courses]);
+    fetchCourses();
+  }, []);
 
   return (
-    <section className="flex w-full h-full flex-col border border-TextColor rounded-lg">
-      <div className="flex w-full h-[12%] bg-Main items-center border-b p-3">
-        <div className="flex space-x-3 items-center w-[40%]">
-          <IconFilt />
-          <input
-            type="text"
-            className="p-2 w-[300px] h-[40px] border rounded"
-            placeholder="Search courses..."
-            aria-label="Search courses"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col w-full h-full overflow-y-auto">
-        {filteredCourses.map((course, index) => (
+    <section className="flex flex-wrap gap-4 w-full h-full p-4">
+      {courses.map((course) => (
+        <div
+          key={course.id}
+          className="w-[200px] h-[200px] flex flex-col justify-between items-center p-4 border border-gray-300 rounded-lg shadow-lg"
+        >
           <CoursDetail
-            key={course.id}
-            name={course.name}
+            title={course.title}
             description={course.description}
             status={course.status}
             date={course.date}
-            isEven={index % 2 === 0}
           />
-        ))}
-      </div>
+        </div>
+      ))}
     </section>
   );
 }

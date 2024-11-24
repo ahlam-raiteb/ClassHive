@@ -1,30 +1,21 @@
 import React from "react";
-import { Checkbox } from 'pretty-checkbox-react';
 
 interface CoursInfoProps {
-    name: string;
-    description: string;
-    status: string;
-    date: string;
-    isEven: boolean;
+  title: string;
+  description: string;
+  status: string;
+  date: string;
 }
 
-export default function CoursDetail({ name, description, status, date, isEven }: CoursInfoProps) {
-  const backgroundColor = isEven ? "bg-[#024F55]" : "bg-white"; 
-  
-  const statusBorderColor = status === "FINISHED" ? "bg-red-500" : "bg-green-500";  
+export default function CoursDetail({ title, description, status, date }: CoursInfoProps) {
+  const statusBorderColor = status === "FINISHED" ? "bg-red-500" : "bg-green-500";
 
   return (
-    <div className={`flex w-full h-[60px] items-center justify-between border-b p-4 ${backgroundColor}`}>
-      <Checkbox className="mr-3" />
-      <p className="w-1/4">{name}</p>
-      <p className="w-1/4">{description}</p>
-      
-      <p className={`w-1/4 rounded px-2 py-1 ${statusBorderColor}`}>
-        {status}
-      </p>
-      
-      <p className="w-1/4">{date}</p>
+    <div className="flex flex-col justify-between h-full w-full">
+      <h3 className="font-bold mb-2 w-1/2 truncate" >{title}</h3>
+      <p className=" mb-2 w-1/2 truncate">{description}</p>
+      <p className={`w-fit rounded px-2 py-1 ${statusBorderColor} mb-2 self-center`}>{status}</p>
+      <p className="text-center">{date}</p>
     </div>
   );
 }

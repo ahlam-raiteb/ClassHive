@@ -13,6 +13,9 @@ const Login: React.FC = () => {
     const toggleRegister = () => {
         setIsRegister(true);
     };
+    const togglelogin = () => {
+        setIsRegister(false);
+    };
 
     return (
         <div className="flex flex-col md:flex-row w-[100%] h-[95%] p-1 bg-Main">
@@ -41,9 +44,9 @@ const Login: React.FC = () => {
                     />
                 </span>
                 {isRegister &&
-                    <button onClick={toggleRegister} className="flex-col text-[16px] text-TextColor mt-10 self-end p-3">
+                    <button onClick={togglelogin} className="flex-col text-[16px] text-TextColor mt-10 self-end p-3">
                         login
-                    <Link href="/"><IconFlesh /></Link>
+                    <IconFlesh />
                     </button>
                 }
                 {!isRegister &&

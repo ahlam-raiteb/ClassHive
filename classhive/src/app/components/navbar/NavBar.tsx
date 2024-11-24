@@ -16,19 +16,19 @@ const NavBar: React.FC = () => {
                 <Image 
                     src="/images/logo.png"
                     alt="logo"
-                    width={900}
-                    height={900}
+                    width={70}
+                    height={90}
                 />
             </span>
             <span className="flex items-center w-[20%] h-full justify-around">
                 <button 
-                    className="flex text-[20px] text-TextColor" 
+                    className="flex text-[18px] text-TextColor" 
                     onClick={() => handleNavigation("/Profile")}
                 >
                     Profile
                 </button>
                 <button 
-                    className="flex text-[20px] text-TextColor" 
+                    className="flex text-[18px] text-TextColor" 
                     onClick={() => handleNavigation("/Cours")} 
                 >
                     Courses

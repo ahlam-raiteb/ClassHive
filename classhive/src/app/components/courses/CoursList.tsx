@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { IconFilt } from "../../icone/icone";
 import CoursInfo from "./CoursInfo";
+import { useSession } from "next-auth/react";
+
 
 interface Course {
   id: number;
@@ -11,21 +13,56 @@ interface Course {
   date: string;
 }
 
-interface CoursesListProps {
-  courses: Course[];
-  onAddCourse: (newCourse: Course) => void;
-}
-
-export default function CoursesList({ courses, onAddCourse }: CoursesListProps) {
-  const [addCourse, setAddCourse] = useState(false);
-  const [courseName, setCourseName] = useState("");
-  const [courseInstructor, setCourseInstructor] = useState("");
-  const [courseDescription, setCourseDescription] = useState("");
-  const [courseDate, setCourseDate] = useState("");
+export default function CoursesList() {
+  const [userId, setuserId] = useState("");
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [addCourseModal, setAddCourseModal] = useState(false);
+  const { data: session } = useSession();
+  const [newCourse, setNewCourse] = useState<Course>({
+    id: Date.now(),
+    title: "",
+    description: "",
+    instructor: "",
+    date: "",
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [searchType, setSearchType] = useState<"title" | "instructor">("title");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+
+ 
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+       
+        const userId = session?.user?.name;
+        if (!userId) {
+          console.error("User is not logged in");
+          return;
+        }
+
+        const response = await fetch("/api/mycourses",{
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setCourses(data.courses || []);
+        } else {
+          console.error("Failed to fetch courses");
+        }
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      }
+    };
+
+    if (session?.user?.name) {
+      fetchCourses();
+    }
+  }, [session]);
 
   useEffect(() => {
     const filterCourses = () => {
@@ -51,21 +88,33 @@ export default function CoursesList({ courses, onAddCourse }: CoursesListProps) 
     filterCourses();
   }, [searchTerm, searchType, courses]);
 
-  const handleAddCourse = () => {
-    const newCourse: Course = {
-      id: Date.now(),
-      title: courseName,
-      description: courseDescription,
-      instructor: courseInstructor,
-      date: courseDate,
-    };
+  const handleAddCourse = async () => {
+    if (!newCourse.title || !newCourse.description || !newCourse.instructor || !newCourse.date) {
+      console.log("Please fill all fields");
+      return;
+    }
 
-    onAddCourse(newCourse);
-    setAddCourse(false);
-    setCourseName("");
-    setCourseDescription("");
-    setCourseInstructor("");
-    setCourseDate("");
+    // setuserId(session?.user?.name);
+    try {
+      const response = await fetch("/api/courses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({newCourse, userId}),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCourses((prev) => [...prev, data.course]);
+        setAddCourseModal(false);
+        setNewCourse({ id: Date.now(), title: "", description: "", instructor: "", date: ""});
+      } else {
+        console.error("Failed to create course");
+      }
+    } catch (error) {
+      console.error("Error creating course:", error);
+    }
   };
 
   const toggleSearchVisibility = () => {
@@ -73,54 +122,53 @@ export default function CoursesList({ courses, onAddCourse }: CoursesListProps) 
   };
 
   return (
-    <section className="flex w-full h-full flex-col border border-TextColor rounded-lg">
-      <div className="flex w-full h-[12%] justify-between bg-Main items-center border-b p-3">
-        <div className="flex space-x-3 items-center w-[60%]">
-          <button onClick={toggleSearchVisibility} className="flex items-center">
-            <IconFilt />
+    <section className="flex flex-col w-full h-full border border-gray-300 rounded-lg shadow-lg">
+      <div className="flex justify-between items-center bg-Main text-black p-4 rounded-t-lg shadow">
+        <div className="flex space-x-4 items-center w-[60%]">
+          <button onClick={toggleSearchVisibility}>
+            <p> / </p>
           </button>
+
           {isSearchVisible && (
-            <>
-              <select
-                value={searchType}
-                onChange={(e) => setSearchType(e.target.value as "title" | "instructor")}
-                className="border rounded p-2"
-              >
-                <option value="title">Search by Title</option>
-                <option value="instructor">Search by Instructor</option>
-              </select>
-            </>
+            <select
+              value={searchType}
+              onChange={(e) => setSearchType(e.target.value as "title" | "instructor")}
+              className="border rounded p-2 text-black"
+            >
+              <option value="title">Search by Title</option>
+              <option value="instructor">Search by Instructor</option>
+            </select>
           )}
+
           <input
             type="text"
-            className="flex items-center p-2 w-[300px] h-[40px] border rounded"
+            className="p-2 w-[300px] h-[40px] border rounded focus:outline-none"
             placeholder={`Search courses by ${searchType}...`}
             aria-label="Search courses"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+
         <button
-          className="flex items-center p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          onClick={() => setAddCourse(true)}
+          className="flex items-center p-2 bg-green-500 text-white rounded hover:bg-green-600"
+          onClick={() => setAddCourseModal(true)}
         >
-          <span className="ml-2"> + Add Course</span>
+          <span className="ml-2">Add Course</span>
         </button>
       </div>
 
-      <div className="flex flex-col w-full h-full overflow-y-auto">
-        {!searchTerm && (
+      <div className="flex flex-col w-full h-full overflow-y-auto p-4">
+        {!searchTerm ? (
           <>
-            <h3 className="p-2 text-center">All Courses</h3>
             {courses.length > 0 ? (
-              courses.map((course, index) => (
+              courses.map((course) => (
                 <CoursInfo
-                  key={course.id}
-                  name={course.title}
+                  key={`${course.id}-${course.title}`}
+                  title={course.title}
                   description={course.description}
                   instructor={course.instructor}
                   date={course.date}
-                  isEven={index % 2 === 0}
                 />
               ))
             ) : (
@@ -129,74 +177,72 @@ export default function CoursesList({ courses, onAddCourse }: CoursesListProps) 
               </div>
             )}
           </>
-        )}
-
-        {searchTerm && (
+        ) : (
           <>
-            <h3 className="p-2 text-center">Filtered Courses</h3>
             {filteredCourses.length > 0 ? (
-              filteredCourses.map((course, index) => (
+              filteredCourses.map((course) => (
                 <CoursInfo
-                  key={course.id}
-                  name={course.title}
+                  key={`${course.id}-${course.title}`}
+                  title={course.title}
                   description={course.description}
                   instructor={course.instructor}
                   date={course.date}
-                  isEven={index % 2 === 0}
                 />
               ))
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="text-gray-500">No courses found for &quot;{searchTerm}&quot;.</p>
+                <p className="text-gray-500">No matching courses found.</p>
               </div>
             )}
           </>
         )}
       </div>
 
-      {addCourse && (
+      {addCourseModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg">
-            <h2>Add New Course</h2>
+          <div className="bg-white p-8 rounded-lg w-96 shadow-lg">
+            <h2 className="text-xl font-semibold text-center text-gray-800">Add New Course</h2>
             <input
               type="text"
               placeholder="Course Name"
-              value={courseName}
-              onChange={(e) => setCourseName(e.target.value)}
-              className="w-full p-2 my-2 border rounded"
+              value={newCourse.title}
+              onChange={(e) => setNewCourse((prev) => ({ ...prev, title: e.target.value }))}
+              className="w-full p-2 my-2 border rounded focus:outline-none"
             />
             <input
               type="text"
               placeholder="Course Description"
-              value={courseDescription}
-              onChange={(e) => setCourseDescription(e.target.value)}
-              className="w-full p-2 my-2 border rounded"
+              value={newCourse.description}
+              onChange={(e) => setNewCourse((prev) => ({ ...prev, description: e.target.value }))}
+              className="w-full p-2 my-2 border rounded focus:outline-none"
             />
             <input
               type="text"
               placeholder="Instructor"
-              value={courseInstructor}
-              onChange={(e) => setCourseInstructor(e.target.value)}
-              className="w-full p-2 my-2 border rounded"
+              value={newCourse.instructor}
+              onChange={(e) => setNewCourse((prev) => ({ ...prev, instructor: e.target.value }))}
+              className="w-full p-2 my-2 border rounded focus:outline-none"
             />
             <input
               type="date"
-              value={courseDate}
-              onChange={(e) => setCourseDate(e.target.value)}
-              className="w-full p-2 my-2 border rounded"
+              value={newCourse.date}
+              onChange={(e) => setNewCourse((prev) => ({ ...prev, date: e.target.value }))}
+              className="w-full p-2 my-2 border rounded focus:outline-none"
             />
-            <button
-              onClick={handleAddCourse}
-              className="bg-blue-500 text-white p-2 rounded"
-            >
-              Save Course
-            </button>
-            <button
-              onClick={() => setAddCourse(false)}
-              className="bg-red-500 text-white p-2 rounded ml-4"
-            >
-              Cancel
-            </button>
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={handleAddCourse}
+                className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+              >
+                Save Course
+              </button>
+              <button
+                onClick={() => setAddCourseModal(false)}
+                className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

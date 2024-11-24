@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="h-screen w-screen">
         <GoogleOAuthProvider clientId={clientId}>
-          <header className="h-[13%]">
+          <header className="h-[10%]">
             <ClientOnlyNavBar />
           </header>
           <main className="flex w-full h-[85%]">

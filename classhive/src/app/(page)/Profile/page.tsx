@@ -4,196 +4,74 @@ import Image from "next/image";
 import { IconDocu, IconFlesh } from "../../icone/icone";
 import CoursesList from "../../components/courses/CoursList";
 import { signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
-const sampleCourses = [
-  {
-    id: 1,
-    title: "Course 1",
-    description: "Description of Course 1",
-    instructor:"Beth ",
-    date: "2024-09-01",
-  },
-  {
-    id: 2,
-    title: "Course 2",
-    description: "Description of Course 2",
-    instructor:"Beth Williamson",
-    date: "2024-09-10",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Hannah Ward ",
-    date: "2024-09-15",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Beth Williamson",
-    date: "2024-09-15",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Beth Williamson",
-    date: "2024-09-15",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Beth Williamson",
-    date: "2024-09-15",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Beth Williamson",
-    date: "2024-09-15",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Beth Williamson",
-    date: "2024-09-15",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Beth Williamson",
-    date: "2024-09-15",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Beth Williamson",
-    date: "2024-09-15",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Beth Williamson",
-    date: "2024-09-15",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Hannah Ward",
-    date: "2024-09-15",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Charles Lynn",
-    date: "2024-09-15",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Charles Lynn",
-    date: "2024-09-15",
-  },
-  {
-    id: 3,
-    title: "Course 3",
-    description: "Description of Course 3",
-    instructor:"Beth Williamson",
-    date: "2024-09-15",
-  },
-];
 
 interface Course {
   id: number;
   title: string;
   description: string;
-  instructor:string;
+  instructor: string;
   date: string;
 }
 
-interface UserProfile {
-  email: string;
-  firstName: string;
-  lastName: string;
-  courses: Course[];
-}
-
 export default function Profile() {
-  const [userData, setUserData] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
+  const { data: session } = useSession();
   const [courses, setCourses] = useState<Course[]>([]);
 
-  const addCourse = (newCourse:Course) => {
-    setCourses([...courses, newCourse]); 
-  };
-
-
   useEffect(() => {
-    async function fetchProfile() {
+    const fetchCourses = async () => {
       try {
-        const response = await fetch('/profile/me', {
-          credentials: 'include',
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch profile data");
+        const response = await fetch("/api/allcourses");
+        if (response.ok) {
+          const data = await response.json();
+          setCourses(data.courses || []);
+        } else {
+          console.error("Failed to fetch courses");
         }
-
-        const data: UserProfile = await response.json();
-        setUserData(data);
       } catch (error) {
-        console.error('Error fetching profile:', error);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching courses:", error);
       }
-    }
+    };
 
-    fetchProfile();
+    fetchCourses();
   }, []);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-
   return (
-    <div className="flex flex-col w-full h-full space-y-3">
-      <section className="flex w-[98%] h-[10%] items-center justify-around">
-        <span className="flex w-[50%] h-full items-center space-x-3 p-4 ">
-          <Image src="/images/avatar.png" alt="avatar" width={100} height={100} />
-          <div className="flex flex-col">
-            <p>{userData?.firstName}{userData?.lastName}</p>
-            <p>{userData?.email}</p>
+    <div className="flex flex-col w-full h-full p-6 space-y-6 rounded-lg">
+      <section className="flex items-center justify-between bg-white shadow rounded-md p-4">
+        <div className="flex items-center space-x-4">
+          <Image
+            src="/images/avatar.png"
+            alt="User Avatar"
+            width={80}
+            height={80}
+            className="rounded-full border border-gray-200"
+          />
+          <div>
+            <p className="text-lg font-semibold text-gray-800">{session?.user?.name || "Username"}</p>
+            <p className="text-sm text-gray-500">{session?.user?.email || "Email Address"}</p>
           </div>
-        </span>
-        <span className="flex w-[50%] h-[94%] items-center justify-end p-6 space-x-3">
-          <p>{sampleCourses.length}</p>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          <div className="flex flex-col items-center">
+            <p className="text-xl font-bold text-indigo-600">{courses.length}</p>
+            <p className="text-sm text-gray-500">Courses</p>
+          </div>
           <IconDocu />
-        </span>
+        </div>
       </section>
 
-
-      <section className="flex w-[98%] h-[75%] items-center justify-center p-3">
-        <CoursesList courses={sampleCourses} onAddCourse={addCourse}/>
+      <section className="flex items-center h-[74%] justify-center p-3">
+        <CoursesList />
       </section>
-        <button
-          onClick={() => signOut({ callbackUrl: '/' })}
-          className="flex-col h-[10%] justify-end self-end text-[16px] text-TextColor mt-10 p-4"
-        >
-          Logout
-          <IconFlesh />
-        </button>
+      <button
+        onClick={() => signOut({ callbackUrl: '/' })}
+        className="flex flex-col justify-end self-end text-[16px] text-TextColor mt-10 p-3"
+      >
+        Logout
+        <IconFlesh />
+      </button>
     </div>
   );
 }

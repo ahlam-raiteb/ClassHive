@@ -20,6 +20,7 @@ const LoginData: React.FC<LoginDataProps> = ({ register }) => {
     const router = useRouter();
    
 
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -79,7 +80,7 @@ const LoginData: React.FC<LoginDataProps> = ({ register }) => {
                 setLastName("");
                 setEmail("");
                 setPassword("");
-                router.push("/");
+                router.push("/Login"); 
             } else {
                 const errorData = await response.json();
                 setError(errorData.message || "Registration failed");
