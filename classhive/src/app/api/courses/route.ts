@@ -1,5 +1,6 @@
 import { connectMongoDB } from "@/app/lib/mongodb";
 import Cours from "@/app/models/course";
+import User from "@/app/models/user";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -9,15 +10,21 @@ export async function POST(req: Request) {
     if (!title || !description || !instructor || !date || !userId) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
+    console.log("user name : ",userId);
 
     await connectMongoDB();
+
+    const user = await User.findOne({ email: userId });
+    if (!user) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    }
 
     const newCourse = await Cours.create({
       title,
       description,
       instructor,
       date,
-      user: userId,
+      user: user._id,
     });
 
     return NextResponse.json({ message: "Course created", course: newCourse }, { status: 200 });

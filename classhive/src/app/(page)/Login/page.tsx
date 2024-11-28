@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import LoginData from "../../components/login/LoginData";
 import Image from "next/image";
 import { IconFlesh } from "../../icone/icone";
-import Link from "next/link";
 
 const Login: React.FC = () => {
 
@@ -26,10 +25,10 @@ const Login: React.FC = () => {
             <div className="hidden md:flex flex-col w-full h-full items-center p-2">
                 <span className="flex w-full h-[5%] justify-end pr-6">
                     <Image
-                        src="/images/um6p_logo.png"
+                        src="/images/1337.png"
                         alt="um6p"
-                        width={140}
-                        height={65}
+                        width={100}
+                        height={100}
                         className="w-[140px] h-[65px]"
                     />
                 </span>

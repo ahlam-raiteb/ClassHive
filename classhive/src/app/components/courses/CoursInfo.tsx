@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Checkbox } from "pretty-checkbox-react";
 import { DeleteIcon, EditIcon } from "@/app/icone/icone";
+import { useSession } from "next-auth/react";
 
 interface CoursInfoProps {
   title: string;
@@ -17,16 +18,22 @@ export default function CoursInfo({ title, description, instructor, date }: Cour
   const [editedDescription, setEditedDescription] = useState(description);
   const [editedInstructor, setEditedInstructor] = useState(instructor);
   const [editedDate, setEditedDate] = useState(date);
+  const { data: session } = useSession();
 
 
   const deleteCours = async () => {
+    const userId = session?.user?.email;
+    if (!userId) {
+      console.error("User is not logged in");
+      return;
+    }
     try {
       const response = await fetch("/api/deletecours", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ title, userId }),
       });
       if (response.ok) {
         console.log("Course deleted");
@@ -40,6 +47,12 @@ export default function CoursInfo({ title, description, instructor, date }: Cour
 
 
   const updateCours = async () => {
+    const userId = session?.user?.email;
+    if (!userId) {
+      console.error("User is not logged in");
+      return;
+    }
+  
     try {
       const response = await fetch("/api/updatecours", {
         method: "PUT",
@@ -51,8 +64,10 @@ export default function CoursInfo({ title, description, instructor, date }: Cour
           description: editedDescription,
           instructor: editedInstructor,
           date: editedDate,
+          userId: userId,
         }),
       });
+  
       if (response.ok) {
         console.log("Course updated");
         setIsEditing(false);
@@ -63,7 +78,7 @@ export default function CoursInfo({ title, description, instructor, date }: Cour
       console.log(error);
     }
   };
-
+  
   return (
     <div className="flex w-full h-[60px] items-center justify-between border-b p-4 shadow space-x-8">
       <Checkbox className="mr-3" />

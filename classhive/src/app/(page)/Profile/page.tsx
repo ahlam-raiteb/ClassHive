@@ -20,9 +20,21 @@ export default function Profile() {
   const [courses, setCourses] = useState<Course[]>([]);
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchMyCourses = async () => {
       try {
-        const response = await fetch("/api/allcourses");
+        const userId = session?.user?.email;
+        if (!userId) {
+          console.error("User is not logged in");
+          return;
+        }
+  
+        const response = await fetch(`/api/mycourses?userId=${encodeURIComponent(userId)}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+  
         if (response.ok) {
           const data = await response.json();
           setCourses(data.courses || []);
@@ -33,9 +45,11 @@ export default function Profile() {
         console.error("Error fetching courses:", error);
       }
     };
-
-    fetchCourses();
-  }, []);
+  
+    if (session?.user?.email) {
+      fetchMyCourses();
+    }
+  }, [session]);
   return (
     <div className="flex flex-col w-full h-full p-6 space-y-6 rounded-lg">
       <section className="flex items-center justify-between bg-white shadow rounded-md p-4">

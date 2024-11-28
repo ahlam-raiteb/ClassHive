@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { IconFilt } from "../../icone/icone";
 import CoursInfo from "./CoursInfo";
 import { useSession } from "next-auth/react";
 
@@ -11,12 +10,13 @@ interface Course {
   description: string;
   instructor: string;
   date: string;
+  userId: string;
 }
 
 export default function CoursesList() {
-  const [userId, setuserId] = useState("");
   const [courses, setCourses] = useState<Course[]>([]);
   const [addCourseModal, setAddCourseModal] = useState(false);
+
   const { data: session } = useSession();
   const [newCourse, setNewCourse] = useState<Course>({
     id: Date.now(),
@@ -24,30 +24,31 @@ export default function CoursesList() {
     description: "",
     instructor: "",
     date: "",
-  });
+    userId:"",
+   });
   const [searchTerm, setSearchTerm] = useState("");
   const [searchType, setSearchType] = useState<"title" | "instructor">("title");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
-
+  
+  
  
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchMyCourses = async () => {
       try {
-       
-        const userId = session?.user?.name;
+        const userId = session?.user?.email;
         if (!userId) {
           console.error("User is not logged in");
           return;
         }
-
-        const response = await fetch("/api/mycourses",{
+  
+        const response = await fetch(`/api/mycourses?userId=${encodeURIComponent(userId)}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ userId }),
         });
+  
         if (response.ok) {
           const data = await response.json();
           setCourses(data.courses || []);
@@ -58,9 +59,9 @@ export default function CoursesList() {
         console.error("Error fetching courses:", error);
       }
     };
-
-    if (session?.user?.name) {
-      fetchCourses();
+  
+    if (session?.user?.email) {
+      fetchMyCourses();
     }
   }, [session]);
 
@@ -89,26 +90,48 @@ export default function CoursesList() {
   }, [searchTerm, searchType, courses]);
 
   const handleAddCourse = async () => {
-    if (!newCourse.title || !newCourse.description || !newCourse.instructor || !newCourse.date) {
-      console.log("Please fill all fields");
+    const userId = session?.user?.email;
+    if (!userId) {
+      console.error("User is not logged in");
       return;
     }
-
-    // setuserId(session?.user?.name);
+    newCourse.instructor = userId;
+    const infoCourse = { ...newCourse, userId };
+  
+    if (
+      !infoCourse.title ||
+      !infoCourse.description ||
+      !infoCourse.instructor ||
+      !infoCourse.date ||
+      !infoCourse.userId
+    ) {
+      console.log("Please fill all fields, including user information");
+      return;
+    }
+  
+    console.log("Submitting course:", infoCourse);
+  
     try {
       const response = await fetch("/api/courses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({newCourse, userId}),
+        body: JSON.stringify(infoCourse),
       });
-
+  
       if (response.ok) {
         const data = await response.json();
         setCourses((prev) => [...prev, data.course]);
         setAddCourseModal(false);
-        setNewCourse({ id: Date.now(), title: "", description: "", instructor: "", date: ""});
+        setNewCourse({
+          id: Date.now(),
+          title: "",
+          description: "",
+          instructor: "",
+          date: "",
+          userId: "",
+        });
       } else {
         console.error("Failed to create course");
       }
@@ -116,6 +139,7 @@ export default function CoursesList() {
       console.error("Error creating course:", error);
     }
   };
+  
 
   const toggleSearchVisibility = () => {
     setIsSearchVisible((prev) => !prev);
@@ -192,7 +216,7 @@ export default function CoursesList() {
             ) : (
               <div className="flex items-center justify-center h-full">
                 <p className="text-gray-500">No matching courses found.</p>
-              </div>
+              </div> 
             )}
           </>
         )}
@@ -214,13 +238,6 @@ export default function CoursesList() {
               placeholder="Course Description"
               value={newCourse.description}
               onChange={(e) => setNewCourse((prev) => ({ ...prev, description: e.target.value }))}
-              className="w-full p-2 my-2 border rounded focus:outline-none"
-            />
-            <input
-              type="text"
-              placeholder="Instructor"
-              value={newCourse.instructor}
-              onChange={(e) => setNewCourse((prev) => ({ ...prev, instructor: e.target.value }))}
               className="w-full p-2 my-2 border rounded focus:outline-none"
             />
             <input

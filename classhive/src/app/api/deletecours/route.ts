@@ -1,10 +1,15 @@
 import { connectMongoDB } from "@/app/lib/mongodb";
 import Cours from "@/app/models/course";
+import User from "@/app/models/user";
 import { NextResponse } from "next/server";
 
 export async function DELETE(req: Request) {
     try {
-        const { title } = await req.json();
+        const { userId, title} = await req.json();
+
+        if (!userId) {
+          return NextResponse.json({ message: "Missing userId" }, { status: 400 });
+        }
         if (!title) {
             return NextResponse.json(
                 { message: "Course title is required" },
@@ -13,7 +18,12 @@ export async function DELETE(req: Request) {
         }
 
         await connectMongoDB();
-        const deletedCourse = await Cours.findOneAndDelete({ title });
+        const user = await User.findOne({ email: userId }).exec();
+        if (!user) {
+          return NextResponse.json({ message: "User not found" }, { status: 404 });
+        }
+        const deletedCourse = await Cours.findOneAndDelete({ title , user: user._id });
+
 
         if (!deletedCourse) {
             return NextResponse.json(
