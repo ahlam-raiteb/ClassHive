@@ -182,6 +182,13 @@ export default function CoursesList() {
         </button>
       </div>
 
+      <div className="flex w-full h-[60px] items-center justify-between border-b p-6  shadow space-x-8">
+        <p className="w-1/4"> Title Cours </p>
+        <p className="w-1/4 "> description Cours</p>
+        <p className="w-1/4 "> instructor Cours </p>
+        <p className="w-1/4"> Date Cours</p>
+        <p className="w-[55px]"></p>
+      </div>
       <div className="flex flex-col w-full h-full overflow-y-auto p-4">
         {!searchTerm ? (
           <>

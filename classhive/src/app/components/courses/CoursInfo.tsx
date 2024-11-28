@@ -81,7 +81,6 @@ export default function CoursInfo({ title, description, instructor, date }: Cour
   
   return (
     <div className="flex w-full h-[60px] items-center justify-between border-b p-4 shadow space-x-8">
-      <Checkbox className="mr-3" />
 
       <p className="w-1/4 truncate" >{title}</p>
 

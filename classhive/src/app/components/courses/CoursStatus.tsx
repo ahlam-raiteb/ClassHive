@@ -37,9 +37,7 @@ export default function CoursesStatus() {
   
         if (response.ok) {
           const data = await response.json();
-          console.log("Followed courses:", data.courses); 
           setFCourses(data.courses || []);
-
         } else {
           console.error("Failed to fetch followed courses");
         }
@@ -52,7 +50,6 @@ export default function CoursesStatus() {
       fetchMyCoursesFoll();
     }
   }, [session]);
-  
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -72,26 +69,30 @@ export default function CoursesStatus() {
     fetchCourses();
   }, []);
 
-
- const getFilteredCourses = () => {
-  if (selectedFilter === "followed") {
-    return courses.filter((course) =>
-      fcourses.some((fCourse) => 
-        fCourse.title === course.title && fCourse.date === course.date && fCourse.instructor === course.instructor
-        && fCourse.instructor === course.instructor
+  const getFilteredCourses = (): Course[] => {
+    if (selectedFilter === "followed") {
+      return courses.filter((course) =>
+        fcourses.some(
+          (fCourse) =>
+            fCourse.title === course.title &&
+            fCourse.date === course.date &&
+            fCourse.instructor === course.instructor
         )
-    );
-  }
-  if (selectedFilter === "unfollowed") {
-    return courses.filter(
-      (course) => !fcourses.some((fCourse) => 
-        fCourse.title === course.title && fCourse.date === course.date && fCourse.instructor === course.instructor
-      && fCourse.instructor === course.instructor) 
-    );
-  }
-  return courses; 
-};
-
+      );
+    }
+    if (selectedFilter === "unfollowed") {
+      return courses.filter(
+        (course) =>
+          !fcourses.some(
+            (fCourse) =>
+              fCourse.title === course.title &&
+              fCourse.date === course.date &&
+              fCourse.instructor === course.instructor
+          )
+      );
+    }
+    return courses;
+  };
 
   return (
     <section className="flex flex-col items-center w-full h-full p-4">
@@ -117,8 +118,8 @@ export default function CoursesStatus() {
       </div>
 
       <div className="flex flex-wrap gap-4 w-full h-full">
-          {getFilteredCourses().map((course) => (
-            <div
+        {getFilteredCourses().map((course) => (
+          <div
             key={course.id}
             className="w-[200px] h-[200px] flex flex-col justify-between items-center p-4 border border-gray-300 rounded-lg shadow-lg"
           >
@@ -128,11 +129,17 @@ export default function CoursesStatus() {
               instructor={course.instructor}
               status={course.status}
               date={course.date}
+              isFollowing={fcourses.some(
+                (fCourse) =>
+                  fCourse.title === course.title &&
+                  fCourse.date === course.date &&
+                  fCourse.description === course.description &&
+                  fCourse.instructor === course.instructor
+              )}
             />
           </div>
-          
-          ))}
-        </div>
+        ))}
+      </div>
     </section>
   );
 }

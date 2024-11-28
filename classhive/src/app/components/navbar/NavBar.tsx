@@ -12,14 +12,16 @@ const NavBar: React.FC = () => {
 
     return (
         <div className="flex border border-TextColor w-full h-[85%] items-center justify-between bg-white p-3">
-            <span className="flex w-[10%] h-full">
+            <button 
+                onClick={() => handleNavigation("/Profile")}
+                className="flex w-[10%] h-full">
                 <Image 
                     src="/images/logo.png"
                     alt="logo"
                     width={70}
                     height={90}
                 />
-            </span>
+            </button>
             <span className="flex items-center w-[20%] h-full justify-around">
                 <button 
                     className="flex text-[18px] text-TextColor" 

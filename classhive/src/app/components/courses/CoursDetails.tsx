@@ -8,15 +8,19 @@ interface CoursInfoProps {
   instructor: string;
   status: string;
   date: string;
+  isFollowing: boolean; 
 }
 
-export default function CoursDetails({ title, description, instructor, status, date }: CoursInfoProps) {
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [checkFollowing, setCheckFollowing] = useState(false);
+export default function CoursDetails({ title, description, instructor, status, date, isFollowing: initialFollowingStatus,
+}: CoursInfoProps) {
+  const [isFollowing, setIsFollowing] = useState<boolean>(initialFollowingStatus);
   const { data: session } = useSession();
   const statusBorderColor = status === "FINISHED" ? "bg-red-500" : "bg-green-500";
 
+  useEffect(() => {
  
+    setIsFollowing(initialFollowingStatus);
+  }, [initialFollowingStatus]);
 
   const followCourse = async () => {
     const userId = session?.user?.email;
@@ -31,14 +35,11 @@ export default function CoursDetails({ title, description, instructor, status, d
         body: JSON.stringify({ userId, courseId }),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
         setIsFollowing(true);
-        console.log("Course followed successfully:", data);
+        console.log("Course followed successfully");
       } else {
-        setCheckFollowing(true)
-        console.error("Failed to follow course:", data.error);
+        console.error("Failed to follow course");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -58,14 +59,11 @@ export default function CoursDetails({ title, description, instructor, status, d
         body: JSON.stringify({ userId, courseId }),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
         setIsFollowing(false);
-        console.log("Course unfollowed successfully:", data);
+        console.log("Course unfollowed successfully");
       } else {
-        setCheckFollowing(false)
-        console.error("Failed to unfollow course:", data.error);
+        console.error("Failed to unfollow course");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -74,11 +72,11 @@ export default function CoursDetails({ title, description, instructor, status, d
 
   return (
     <div className="flex flex-col justify-between h-full w-full">
-        <button
-          onClick={isFollowing ? unfollowCourse : followCourse}
-          className={`flex border w-[60px] h-[30px] self-end items-center rounded shadow justify-center ${
-            isFollowing  ? "bg-gray-500" : "bg-blue-500"
-          }`}
+      <button
+        onClick={isFollowing ? unfollowCourse : followCourse}
+        className={`flex border w-[80px] h-[30px] self-end items-center rounded shadow justify-center ${
+          isFollowing ? "bg-gray-500" : "bg-blue-500"
+        }`}
         disabled={false}
       >
         {isFollowing ? "Unfollow" : "Follow"}
